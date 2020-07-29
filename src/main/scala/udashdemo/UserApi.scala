@@ -22,9 +22,7 @@ object EnhancedRestImplicits extends EnhancedRestImplicits
 
 case class User(name:String, createdAt: DateTime)
 
-object User extends RestDataCompanion[User] {
-
-}
+object User extends EnhancedRestDataCompanion[User]
 
 trait UserApi {
   /** Returns newly created user */
