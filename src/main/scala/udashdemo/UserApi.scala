@@ -3,6 +3,7 @@ package udashdemo
 import com.avsystem.commons.meta.MacroInstances
 import com.avsystem.commons.serialization.GenCodec
 import io.udash.rest._
+import io.udash.rest.raw.{RawRest, RestMetadata}
 
 import scala.concurrent.Future
 import org.joda.time.DateTime
@@ -35,4 +36,20 @@ trait UserApi {
   def boom: Future[Int]
 }
 
-object UserApi extends RestApiCompanion[EnhancedRestImplicits, UserApi](EnhancedRestImplicits)
+abstract class EnhancedRestApiCompanion[Real](
+  implicit inst: MacroInstances[EnhancedRestImplicits, FullInstances[Real]]
+) {
+  implicit final lazy val restMetadata: RestMetadata[Real] = inst(EnhancedRestImplicits, this).metadata
+  implicit final lazy val restAsRaw: RawRest.AsRawRpc[Real] = inst(EnhancedRestImplicits, this).asRaw
+  implicit final lazy val restAsReal: RawRest.AsRealRpc[Real] = inst(EnhancedRestImplicits, this).asReal
+
+  final def fromHandleRequest(handleRequest: RawRest.HandleRequest): Real = {
+    RawRest.fromHandleRequest(handleRequest)
+  }
+
+  final def asHandleRequest(real: Real): RawRest.HandleRequest = {
+    RawRest.asHandleRequest(real)
+  }
+}
+
+object UserApi extends EnhancedRestApiCompanion[UserApi]
