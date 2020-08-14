@@ -42,6 +42,9 @@ object Demo extends App{
 
     client.boom.onComplete {
         case Success(value) => println(s"got the value of $value")
+        case Failure(e: CodedException) =>
+            println(s"coded exception thrown: ${e.code}")
+
         case Failure(cause) => {
             println(cause.toString)
             cause.printStackTrace()
