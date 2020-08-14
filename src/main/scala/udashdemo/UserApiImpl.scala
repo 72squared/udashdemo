@@ -9,4 +9,6 @@ class UserApiImpl extends UserApi {
     Future.successful(User(name, createdAt=DateTime.now))
 
   override def getNow: Future[DateTime] = Future.successful(DateTime.now())
+
+  override def boom: Future[Int] = throw new CodedException("boooooom!!!")
 }

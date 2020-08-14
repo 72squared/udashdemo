@@ -7,12 +7,24 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Success}
 
+object MyApp {
+
+    def apply() = {
+
+        implicit val sttpBackend: SttpBackend[Future, Nothing, Nothing] = SttpRestClient.defaultBackend()
+
+        // obtain a "proxy" instance of UserApi
+        val client: UserApi = SttpRestClient[UserApi]("http://127.0.0.1:9090/api")
+        client
+    }
+}
+
 object Demo extends App{
     // allocate an STTP backend
-    implicit val sttpBackend: SttpBackend[Future, Nothing, Nothing] = SttpRestClient.defaultBackend()
+
 
     // obtain a "proxy" instance of UserApi
-    val client: UserApi = SttpRestClient[UserApi]("http://127.0.0.1:9090/api")
+    val client: UserApi = MyApp()
 
     // make a remote REST call
     val result: Future[User] = client.createUser("Fred")
@@ -26,7 +38,17 @@ object Demo extends App{
         case Failure(cause) => cause.printStackTrace()
     }
 
+    client.boom.onComplete {
+        case Success(value) => println("got the value of x")
+        case Failure(cause) => {
+            println(cause.toString)
+            cause.printStackTrace()
+        }
+    }
+
+
 
     // just wait until the Future is complete so that main thread doesn't finish prematurely
     Await.ready(result, 10.seconds)
+    sys.exit(0)
 }
