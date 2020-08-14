@@ -51,8 +51,6 @@ object Demo extends App{
         }
     }
 
-
-
     // just wait until the Future is complete so that main thread doesn't finish prematurely
     Await.ready(result, 10.seconds)
     sys.exit(0)
