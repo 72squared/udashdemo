@@ -26,6 +26,8 @@ object Demo extends App{
     // obtain a "proxy" instance of UserApi
     val client: UserApi = MyApp()
 
+    implicit val sc = ServiceContext("ADMIN")
+
     // make a remote REST call
     val result: Future[User] = client.createUser("Fred")
 
@@ -34,12 +36,12 @@ object Demo extends App{
 
     // do something with the result
     result.onComplete {
-        case Success(user) => println(s"User ${user.name} created with dt of: ${user.createdAt}")
+        case Success(user) => println(s"User ${user.name} created with dt of: ${user.createdAt} by ${user.createdBy}")
         case Failure(cause) => cause.printStackTrace()
     }
 
     client.boom.onComplete {
-        case Success(value) => println("got the value of x")
+        case Success(value) => println(s"got the value of $value")
         case Failure(cause) => {
             println(cause.toString)
             cause.printStackTrace()

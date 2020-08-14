@@ -3,7 +3,6 @@ package udashdemo
 import com.avsystem.commons.meta.MacroInstances
 import com.avsystem.commons.serialization.GenCodec
 import io.udash.rest._
-import io.udash.rest.raw.{RawRest, RestMetadata}
 
 import scala.concurrent.Future
 import org.joda.time.DateTime
@@ -22,34 +21,30 @@ trait EnhancedRestImplicits extends DefaultRestImplicits {
 
 object EnhancedRestImplicits extends EnhancedRestImplicits
 
-case class User(name:String, createdAt: DateTime)
+abstract class EnhancedRestApiCompanion[Real](implicit inst: MacroInstances[EnhancedRestImplicits, FullInstances[Real]]) extends RestApiCompanion[EnhancedRestImplicits, Real](EnhancedRestImplicits)
+
+
+
+
+case class User(name:String, createdAt: DateTime, createdBy: String)
 
 object User extends EnhancedRestDataCompanion[User]
 
 class CodedException(val code: String) extends Exception
 
+case class ServiceContext(requestedBy: String)
+object ServiceContext extends EnhancedRestDataCompanion[ServiceContext]
 
 trait UserApi {
   /** Returns newly created user */
-  def createUser(name: String): Future[User]
-  def getNow: Future[DateTime]
+  def createUser(name: String)(implicit sc: ServiceContext): Future[User]
   def boom: Future[Int]
 }
 
-abstract class EnhancedRestApiCompanion[Real](
-  implicit inst: MacroInstances[EnhancedRestImplicits, FullInstances[Real]]
-) {
-  implicit final lazy val restMetadata: RestMetadata[Real] = inst(EnhancedRestImplicits, this).metadata
-  implicit final lazy val restAsRaw: RawRest.AsRawRpc[Real] = inst(EnhancedRestImplicits, this).asRaw
-  implicit final lazy val restAsReal: RawRest.AsRealRpc[Real] = inst(EnhancedRestImplicits, this).asReal
 
-  final def fromHandleRequest(handleRequest: RawRest.HandleRequest): Real = {
-    RawRest.fromHandleRequest(handleRequest)
-  }
-
-  final def asHandleRequest(real: Real): RawRest.HandleRequest = {
-    RawRest.asHandleRequest(real)
-  }
-}
 
 object UserApi extends EnhancedRestApiCompanion[UserApi]
+
+
+
+
